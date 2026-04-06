@@ -1,0 +1,7 @@
+.vscode/
+src/.vscode/
+*.db
+*.ply
+build/
+devel/
+logs/
