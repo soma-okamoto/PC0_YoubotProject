@@ -71,6 +71,7 @@ sudo iptables -F
 
 
 rosrun esaki_youbot_project_gradient gripper.py 
+rosrun esaki_youbot_project_gradient Meta_DepthSubscriber.py
 
 roslaunch esaki_slam youbot_move_base.launch 
 roslaunch slam_toolbox online_async.launch 
