@@ -5,8 +5,8 @@ IRT-MRO-Project手順
 時刻設定    
 sudo ntpdate -u ccntp.meijo-u.ac.jp
 
-export ROS_IP=192.168.11.14
-export ROS_MASTER_URI=http://192.168.11.14:11311
+export ROS_IP=192.168.11.17
+export ROS_MASTER_URI=http://192.168.11.17:11311
 
 sudo iptables -P FORWARD ACCEPT
 
@@ -34,7 +34,7 @@ sudo ip route add 192.168.11.0/24 via 10.42.0.1 dev enp0s25
 
 unset ROS_HOSTNAME
 export ROS_IP=10.42.0.240
-export ROS_MASTER_URI=http://192.168.11.14:11311
+export ROS_MASTER_URI=http://192.168.11.17:11311
 sudo iptables -F
 
 
@@ -55,8 +55,8 @@ roslaunch luh_laser_watchdog front.launch
 
 cd realsense_ws
 source devel/setup.bash
-export ROS_IP=192.168.11.14
-export ROS_HOSTNAME=192.168.11.14
+export ROS_IP=192.168.11.17
+export ROS_HOSTNAME=192.168.11.17
 sudo iptables -F
 
 roslaunch realsense2_camera cubeslam_camera.launch
@@ -65,8 +65,8 @@ roslaunch realsense2_camera cubeslam_camera.launch
 
 cd catkin_ws
 source devel/setup.bash
-export ROS_IP=192.168.11.14
-export ROS_HOSTNAME=192.168.11.14
+export ROS_IP=192.168.11.17
+export ROS_HOSTNAME=192.168.11.17
 sudo iptables -F
 
 
@@ -96,3 +96,38 @@ rosparam set /use_sim_time false
 
 
 find . -name "*.py" -exec chmod +x {} \;
+
+
+
+####################ROS2Bridge
+##################################
+
+docker rm -f humble_noetic_bridge
+docker run -d \
+  --name humble_noetic_bridge \
+  --network host \
+  --entrypoint tail \
+  -e ROS_MASTER_URI=http://192.168.11.17:11311 \
+  -e ROS_IP=192.168.11.17 \
+  -e ROS_DOMAIN_ID=0 \
+  -v ~/docker_ws/Humble-Noetic/bridge.yaml:/root/bridge.yaml \
+  humble-noetic-bridge:22.04 \
+  -f /dev/null
+
+
+
+  docker exec -it humble_noetic_bridge bash
+
+source /root/catkin_ws/devel/setup.bash
+
+export ROS_MASTER_URI=http://192.168.11.17:11311
+export ROS_IP=192.168.11.17
+
+rosparam load /root/bridge.yaml
+rosparam get /topics
+
+unset ROS_DISTRO
+source /opt/ros/humble/setup.bash
+source /root/ros2_ws/install/local_setup.bash
+
+ros2 run ros1_bridge parameter_bridge
